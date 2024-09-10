@@ -49,23 +49,26 @@ export const ActivityScreen = ({route}: {route: any}) => {
   }, [activityId, accessToken]);
 
   const calculateLaps = (data: StreamData) => {
+    //Extract relevant data
     const {distance, cadence, altitude, heartrate, velocity_smooth} = data;
 
+    //Initialise empty laps array to store lap summaries
     const laps: LapSummary[] = [];
 
     let lastLapDistance = 0;
     let lapNumber = 1;
     let currentLap: LapSummary | null = null;
 
+    //Iterates over the distance array
     for (let i = 0; i < distance.length; i++) {
       // Check if we've reached the end of a lap (1km)
       if (distance[i] - lastLapDistance >= 1000) {
-        // Save the stats for the completed lap
+        // Save the stats for the completed lap and push it to the laps array
         if (currentLap) {
           laps.push(currentLap);
         }
 
-        // Initialise a new lap stats object
+        // Initialise a new lap stats object as last lap has been completed
         currentLap = {
           lapNumber,
           lapDistance: 1,
@@ -78,10 +81,12 @@ export const ActivityScreen = ({route}: {route: any}) => {
           maxSpeed: velocity_smooth ? velocity_smooth[i] : undefined,
         };
 
+        //Update lastLapDistance to check for next 1km
         lastLapDistance = distance[i];
       } else {
         // Update the current lap stats
         if (currentLap) {
+          //Check if the current values are greater or smaller than the stored maximum/minimum and updates them as needed
           if (cadence) {
             currentLap.maxCadence = Math.max(
               currentLap.maxCadence ?? cadence[i],
@@ -127,6 +132,7 @@ export const ActivityScreen = ({route}: {route: any}) => {
     }
 
     // Handle the case where the last lap data needs to be added
+    //Last lap might not have reached 1km
     if (currentLap) {
       laps.push(currentLap);
     }
